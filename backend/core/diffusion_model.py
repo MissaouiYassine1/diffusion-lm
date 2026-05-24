@@ -251,7 +251,9 @@ class DiffusionLMWithGeneration(DiffusionLM):
         # Partir d'une séquence entièrement masquée
         current = torch.full((seq_len,), mask_token_id, device=device, dtype=torch.long)
         steps_log = []
-        
+        # Ajouter la méthode generate au modèle existant
+        # (patch pour garder la compatibilité)
+        setattr(DiffusionLM, 'generate', DiffusionLMWithGeneration.generate)
         # Remplacer les positions du prompt
         for i, token in enumerate(prompt_ids):
             if i < len(prompt_ids):
@@ -308,6 +310,90 @@ class DiffusionLMWithGeneration(DiffusionLM):
                 break
         
         return current.cpu().tolist(), steps_log
+
+class DiffusionLMWithGeneration(DiffusionLM):
+    """Extension du modèle avec capacité de génération"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.diffusion = DiffusionProcess(T=100)
+    
+    def generate(self, prompt_ids, mask_token_id, num_steps=50, temperature=0.8):
+        """
+        Générer du texte par diffusion inversée.
+        
+        Args:
+            prompt_ids: [seq_len] tokens du prompt
+            mask_token_id: ID du token [MASK]
+            num_steps: nombre d'étapes de débrutage
+            temperature: température pour l'échantillonnage
+        Returns:
+            generated: tokens générés
+            steps_log: historique des étapes (pour visualisation)
+        """
+        seq_len = len(prompt_ids)
+        device = next(self.parameters()).device
+        
+        # Partir d'une séquence entièrement masquée
+        current = torch.full((seq_len,), mask_token_id, device=device, dtype=torch.long)
+        steps_log = []
+        
+        # Remplacer les positions du prompt (on garde le début)
+        for i, token in enumerate(prompt_ids):
+            if i < len(prompt_ids):
+                current[i] = token
+        
+        # Débruiter progressivement
+        for step in range(num_steps):
+            t = num_steps - step  # De T-1 à 0
+            noise_ratio = t / num_steps
+            
+            # Prédire les tokens à démasquer
+            with torch.no_grad():
+                logits = self.forward(current.unsqueeze(0))  # [1, seq_len, vocab_size]
+                probs = F.softmax(logits[0] / temperature, dim=-1)
+            
+            # Décider quels tokens démasquer cette étape
+            # Plus on avance, plus on démasque de tokens
+            mask_positions = (current == mask_token_id).nonzero(as_tuple=True)[0]
+            num_to_unmask = max(1, int(len(mask_positions) * (1 - noise_ratio)))
+            
+            if num_to_unmask > 0 and len(mask_positions) > 0:
+                # Choisir les positions avec la plus haute confiance
+                mask_confidences = []
+                for pos in mask_positions:
+                    confidence = probs[pos, current[pos]].item() if current[pos] != mask_token_id else 0
+                    mask_confidences.append((pos.item(), confidence))
+                
+                # Trier par confiance
+                mask_confidences.sort(key=lambda x: x[1], reverse=True)
+                positions_to_unmask = [pos for pos, _ in mask_confidences[:num_to_unmask]]
+                
+                # Remplacer
+                for pos in positions_to_unmask:
+                    # Échantillonner selon la distribution de probabilité
+                    token_dist = probs[pos]
+                    if temperature > 0:
+                        token_dist = token_dist ** (1.0 / temperature)
+                        token_dist = token_dist / token_dist.sum()
+                    new_token = torch.multinomial(token_dist, 1).item()
+                    current[pos] = new_token
+            
+            # Log étape
+            steps_log.append({
+                'step': step,
+                'noise_ratio': noise_ratio,
+                'num_masked': (current == mask_token_id).sum().item(),
+                'tokens': current.clone()
+            })
+            
+            # Arrêt anticipé si plus rien de masqué
+            if (current == mask_token_id).sum() == 0:
+                break
+        
+        return current.cpu().tolist(), steps_log
+
+
 
 # ============================================================================
 # TEST
