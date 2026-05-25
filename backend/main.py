@@ -25,13 +25,18 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Configuration CORS
+# Configuration CORS avancée
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8501", "http://127.0.0.1:8501"],
+    allow_origins=[
+        "http://localhost:8501",  # Streamlit
+        "http://127.0.0.1:8501",
+        "http://localhost:3000",  # React (optionnel)
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"],
 )
 
 # Rate limiting
