@@ -16,6 +16,12 @@ import sys
 sys.path.append('.')
 from frontend.utils.api_client import get_api_client
 
+# Importer le state manager
+from frontend.utils.state_manager import SessionState
+
+# Initialiser au démarrage
+SessionState.init()
+
 # Configuration de la page (doit être la première commande Streamlit)
 st.set_page_config(
     page_title="Diffusion Language Model",
@@ -185,7 +191,19 @@ if generate_btn and prompt.strip():
                               title="Niveau de bruit par étape",
                               labels={"step": "Étape", "noise_ratio": "Ratio de bruit"})
                 st.plotly_chart(fig, use_container_width=True)
-                
+
+            # Ajouter à l'historique
+            SessionState.add_to_history(
+                prompt=prompt.strip(),
+                generated_text=data["generated_text"],
+                metadata={
+                    'time_ms': data['inference_time_ms'],
+                    'steps': data['steps_used'],
+                    'temperature': temperature,
+                    'api_time': data['inference_time_ms']
+                }
+            )
+
         else:
             st.error(f"❌ Erreur: {result['error']}")
 
