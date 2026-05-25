@@ -75,7 +75,7 @@ Le projet inclut une **API REST** (FastAPI), une **interface utilisateur interac
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/votre-pseudo/diffusion-lm-scrum.git
+git clone https://github.com/MissaouiYassine1/diffusion-lm.git
 cd diffusion-lm-scrum
 
 # Configurer les variables d'environnement
@@ -89,8 +89,8 @@ docker-compose up -d --build
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/votre-pseudo/diffusion-lm-scrum.git
-cd diffusion-lm-scrum
+git clone https://github.com/MissaouiYassine1/diffusion-lm.git
+cd diffusion-lm
 
 # Créer et activer l'environnement virtuel
 python -m venv venv
@@ -271,9 +271,9 @@ Distribué sous la licence **MIT**. Voir le fichier [`LICENSE`](./LICENSE) pour 
 
 ## ✉️ Contact
 
-**Votre Nom** — [votre.email@exemple.com](mailto:votre.email@exemple.com)
+**Votre Nom** — [yassine.missaoui.email@enis.tn](mailto:yassine.missaoui.email@enis.tn)
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/votre-pseudo)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/votre-profil)
 
-🔗 **Lien du projet** : [https://github.com/votre-pseudo/diffusion-lm-scrum](https://github.com/votre-pseudo/diffusion-lm-scrum)
+🔗 **Lien du projet** : [https://github.com/MissaouiYassine1/diffusion-lm](https://github.com/votre-pseudo/diffusion-lm-scrum)
