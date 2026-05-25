@@ -8,12 +8,12 @@ import torch
 import time
 from datetime import datetime
 
-# Import des modules internes
 import sys
 sys.path.append('.')
 
 from backend.config import settings
-from backend.api.routes import generation, health
+from backend.api.routes import health, generation
+from backend.services.generation_service import GenerationService
 
 # Créer l'application
 app = FastAPI(
@@ -35,19 +35,18 @@ app.add_middleware(
 
 # Variables globales
 app.state.start_time = time.time()
-app.state.model = None
-app.state.tokenizer = None
+app.state.generation_service = None
 
 # Inclure les routes
 app.include_router(health.router, tags=["Health"])
-# app.include_router(generation.router, tags=["Generation"])  # Sera ajouté plus tard
+app.include_router(generation.router, tags=["Generation"])
 
 @app.on_event("startup")
 async def startup_event():
     """Charger le modèle au démarrage"""
-    print("🔄 Chargement du modèle...")
-    # Temporaire: juste un placeholder
-    print("✅ API démarrée (modèle sera chargé plus tard)")
+    print("🔄 Chargement du service de génération...")
+    app.state.generation_service = GenerationService(model_path=settings.MODEL_PATH)
+    print("✅ API prête!")
 
 @app.get("/")
 async def root():
@@ -55,5 +54,6 @@ async def root():
         "message": "Diffusion Language Model API",
         "docs": "/docs",
         "health": "/health",
+        "generate": "/generate",
         "version": "1.0.0"
     }
