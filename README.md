@@ -271,9 +271,9 @@ Distribué sous la licence **MIT**. Voir le fichier [`LICENSE`](./LICENSE) pour 
 
 ## ✉️ Contact
 
-**Votre Nom** — [yassine.missaoui.email@enis.tn](mailto:yassine.missaoui.email@enis.tn)
+**MISSAOUI Yassine** — [yassine.missaoui.email@enis.tn](mailto:yassine.missaoui.email@enis.tn)
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/votre-pseudo)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/votre-profil)
 
-🔗 **Lien du projet** : [https://github.com/MissaouiYassine1/diffusion-lm](https://github.com/votre-pseudo/diffusion-lm-scrum)
+🔗 **Lien du projet** : [https://github.com/MissaouiYassine1/diffusion-lm](https://github.com/MissaouiYassine1/diffusion-lm)
