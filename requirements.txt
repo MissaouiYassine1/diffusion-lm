@@ -5,3 +5,10 @@ pydantic
 pydantic-settings
 python-multipart
 slowapi
+
+#UI
+streamlit
+plotly
+pandas
+streamlit-extras
+requests
