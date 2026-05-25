@@ -12,3 +12,4 @@ plotly
 pandas
 streamlit-extras
 requests
+streamlit-lottie
