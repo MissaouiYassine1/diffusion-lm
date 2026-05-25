@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # API FastAPI
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: diffusion-lm-api
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - MODEL_PATH=/app/models/diffusion_lm_toy.pt
+    volumes:
+      - ./models:/app/models
+      - ./backend:/app/backend
+    networks:
+      - diffusion-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Streamlit Frontend
+  streamlit:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.streamlit
+    container_name: diffusion-lm-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    volumes:
+      - ./frontend:/app/frontend
+      - ./.streamlit:/app/.streamlit
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - diffusion-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (optionnel)
+  nginx:
+    image: nginx:alpine
+    container_name: diffusion-lm-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+      - streamlit
+    networks:
+      - diffusion-network
+    restart: unless-stopped
+
+networks:
+  diffusion-network:
+    driver: bridge
