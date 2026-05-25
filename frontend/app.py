@@ -3,8 +3,6 @@ Application Streamlit pour le Diffusion Language Model.
 Interface professionnelle avec visualisations interactives.
 """
 
-from tabnanny import verbose
-
 import streamlit as st
 import requests
 import plotly.graph_objects as go
@@ -13,13 +11,14 @@ import pandas as pd
 import time
 from datetime import datetime
 
-# Import du client API
 import sys
 sys.path.append('.')
 from frontend.utils.api_client import get_api_client
-# Ajouter l'import
 from frontend.components.diffusion_viewer import render_diffusion_steps
+from frontend.utils.state_manager import SessionState
 
+# Initialiser le state manager
+SessionState.init()
 
 # Configuration de la page (doit être la première commande Streamlit)
 st.set_page_config(
@@ -69,26 +68,21 @@ api_client = get_api_client()
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/artificial-intelligence.png", width=80)
     st.title("⚙️ Configuration")
-    
-    # Paramètres du modèle
+
     st.subheader("🎛️ Paramètres de génération")
-    steps = st.slider("Pas de diffusion", 10, 100, 30, 
+    steps = st.slider("Pas de diffusion", 10, 100, 30,
                       help="Plus de pas = meilleure qualité mais plus lent")
     temperature = st.slider("Température", 0.1, 2.0, 0.8, 0.05,
                             help="Plus élevé = plus créatif")
     max_length = st.number_input("Longueur max (tokens)", 20, 200, 80)
-    
-    # Options d'affichage
+
     st.subheader("📊 Affichage")
     verbose_mode = st.checkbox("Mode étape par étape", value=False,
                                help="Afficher chaque étape du débrutage")
     show_metrics = st.checkbox("Afficher métriques", value=True)
-    
-    # API Status
+
     st.divider()
     st.subheader("🔌 Connexion API")
-    
-    # Tester la connexion API
     health = api_client.health_check()
     if health["success"]:
         st.success("✅ API connectée")
@@ -101,22 +95,17 @@ with st.sidebar:
 st.markdown('<p class="main-header">🔄 Diffusion Language Model</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Génération de texte par diffusion progressive (bruit → débruiter)</p>', unsafe_allow_html=True)
 
-# Organisation en colonnes
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    # Zone de saisie
     prompt = st.text_area(
         "📝 **Votre prompt**",
         placeholder="Exemple: Le chat noir...",
         height=120
     )
-    
-    # Bouton de génération
     generate_btn = st.button("🚀 **Générer**", type="primary", use_container_width=True)
 
 with col2:
-    # Exemples rapides
     st.markdown("### 💡 Exemples")
     examples = [
         "le chat",
@@ -124,7 +113,6 @@ with col2:
         "dans un monde lointain",
         "la révolution de l'IA"
     ]
-    
     for ex in examples:
         if st.button(f"📌 {ex}", key=ex, use_container_width=True):
             prompt = ex
@@ -134,11 +122,10 @@ with col2:
 if generate_btn and prompt.strip():
     st.divider()
     st.markdown("## ✨ Résultat")
-    
+
     with st.spinner("🔄 Génération en cours (diffusion étape par étape)..."):
         start_time = time.time()
-        
-        # Appel API via le client
+
         result = api_client.generate(
             prompt=prompt.strip(),
             steps=steps,
@@ -146,16 +133,14 @@ if generate_btn and prompt.strip():
             max_length=max_length,
             verbose=verbose_mode
         )
-        
+
         if result["success"]:
             data = result["data"]
             inference_time = (time.time() - start_time) * 1000
-            
-            # Afficher le texte généré
+
             st.markdown("### 📄 Texte généré")
             st.success(data["generated_text"])
-            
-            # Métriques si demandé
+
             if show_metrics:
                 st.markdown("### 📊 Métriques")
                 mcol1, mcol2, mcol3, mcol4 = st.columns(4)
@@ -167,32 +152,40 @@ if generate_btn and prompt.strip():
                     st.metric("Longueur (mots)", data["length"])
                 with mcol4:
                     st.metric("API + UI", f"{inference_time:.0f} ms")
-            
-            # Mode étape par étape
+
             if verbose_mode and data.get("diffusion_steps"):
                 st.markdown("### 🔄 Processus de diffusion inversé")
                 st.caption("Chaque étape montre la progression du débrutage")
-                
-                # Créer un expander pour chaque étape (limité aux 10 premières)
+
                 for step in data["diffusion_steps"][:10]:
                     with st.expander(f"📌 Étape {step['step']} (bruit: {step['noise_ratio']:.0%})"):
                         st.code(step['partial_text'][:200])
                         st.progress(1 - step['noise_ratio'])
-                
+
                 if len(data["diffusion_steps"]) > 10:
                     st.info(f"... et {len(data['diffusion_steps']) - 10} étapes supplémentaires")
-            
-            # Visualisation graphique (optionnel)
-            if verbose and result["data"].get("diffusion_steps"):
-                render_diffusion_steps(result["data"]["diffusion_steps"])
-            """ if verbose_mode and data.get("diffusion_steps"):
+
                 st.markdown("### 📈 Progression du débrutage")
                 df = pd.DataFrame(data["diffusion_steps"])
-                fig = px.line(df, x="step", y="noise_ratio", 
+                fig = px.line(df, x="step", y="noise_ratio",
                               title="Niveau de bruit par étape",
                               labels={"step": "Étape", "noise_ratio": "Ratio de bruit"})
-                st.plotly_chart(fig, use_container_width=True) """
-                
+                st.plotly_chart(fig, use_container_width=True)
+
+                render_diffusion_steps(data["diffusion_steps"])
+
+            # Ajouter à l'historique
+            SessionState.add_to_history(
+                prompt=prompt.strip(),
+                generated_text=data["generated_text"],
+                metadata={
+                    'time_ms': data['inference_time_ms'],
+                    'steps': data['steps_used'],
+                    'temperature': temperature,
+                    'api_time': data['inference_time_ms']
+                }
+            )
+
         else:
             st.error(f"❌ Erreur: {result['error']}")
 
