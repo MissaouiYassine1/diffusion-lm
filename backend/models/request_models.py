@@ -77,6 +77,7 @@ class GenerateRequest(BaseModel):
         }
 
 
+
 class BatchGenerateRequest(BaseModel):
     """Requête de génération par lot"""
     
