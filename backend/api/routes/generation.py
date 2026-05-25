@@ -12,6 +12,21 @@ router = APIRouter()
 
 limiter = Limiter(key_func=get_remote_address)
 
+@router.post("/generate", response_model=GenerateResponse,
+summary="Générer du texte",
+description="""
+Génère du texte à partir d'un prompt en utilisant le modèle de diffusion.
+
+Le processus fonctionne en plusieurs étapes:
+
+Le prompt est encodé
+
+On part d'une séquence masquée
+
+On démasque progressivement les tokens
+
+On retourne le texte final
+""")
 
 @router.post("/generate", response_model=GenerateResponse)
 @limiter.limit("10/minute")
@@ -90,3 +105,5 @@ async def batch_generate(
 async def log_generation(prompt: str, steps: int, time_ms: float):
     """Log en arrière-plan"""
     print(f"[LOG] Prompt: {prompt[:50]}... | Steps: {steps} | Time: {time_ms:.0f}ms")
+
+
