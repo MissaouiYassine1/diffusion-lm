@@ -3,6 +3,8 @@ Application Streamlit pour le Diffusion Language Model.
 Interface professionnelle avec visualisations interactives.
 """
 
+from tabnanny import verbose
+
 import streamlit as st
 import requests
 import plotly.graph_objects as go
@@ -15,6 +17,9 @@ from datetime import datetime
 import sys
 sys.path.append('.')
 from frontend.utils.api_client import get_api_client
+# Ajouter l'import
+from frontend.components.diffusion_viewer import render_diffusion_steps
+
 
 # Configuration de la page (doit être la première commande Streamlit)
 st.set_page_config(
@@ -178,13 +183,15 @@ if generate_btn and prompt.strip():
                     st.info(f"... et {len(data['diffusion_steps']) - 10} étapes supplémentaires")
             
             # Visualisation graphique (optionnel)
-            if verbose_mode and data.get("diffusion_steps"):
+            if verbose and result["data"].get("diffusion_steps"):
+                render_diffusion_steps(result["data"]["diffusion_steps"])
+            """ if verbose_mode and data.get("diffusion_steps"):
                 st.markdown("### 📈 Progression du débrutage")
                 df = pd.DataFrame(data["diffusion_steps"])
                 fig = px.line(df, x="step", y="noise_ratio", 
                               title="Niveau de bruit par étape",
                               labels={"step": "Étape", "noise_ratio": "Ratio de bruit"})
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True) """
                 
         else:
             st.error(f"❌ Erreur: {result['error']}")
