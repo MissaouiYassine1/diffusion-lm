@@ -23,6 +23,7 @@ async def health_check(request: Request):
     return HealthResponse(
         status="healthy",
         uptime_seconds=uptime,
-        model_loaded=request.app.state.model is not None,
+        model_loaded=request.app.state.generation_service is not None and 
+                     request.app.state.generation_service.is_loaded(),
         timestamp=time.strftime("%Y-%m-%d %H:%M:%S")
     )

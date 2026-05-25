@@ -31,3 +31,4 @@ class GenerateResponse(BaseModel):
                 "diffusion_steps": None
             }
         }
+    
