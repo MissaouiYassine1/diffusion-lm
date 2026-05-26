@@ -1,0 +1,14 @@
+[
+  {
+    "id": 0,
+    "timestamp": "2026-05-25T08:59:56.143284",
+    "prompt": "chat",
+    "generated_text": "chat",
+    "metadata": {
+      "time_ms": 8.641958236694336,
+      "steps": 1,
+      "temperature": 0.8,
+      "api_time": 8.641958236694336
+    }
+  }
+]
