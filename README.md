@@ -75,7 +75,7 @@ Le projet inclut une **API REST** (FastAPI), une **interface utilisateur interac
 ```bash
 # Cloner le dépôt
 git clone https://github.com/MissaouiYassine1/diffusion-lm.git
-cd diffusion-lm-scrum
+cd diffusion-lm
 
 # Configurer les variables d'environnement
 cp .env.example .env
@@ -149,7 +149,7 @@ curl -X POST http://localhost:8000/generate \
 ## 🏗 Architecture du Projet
 
 ```
-diffusion-lm-scrum/
+diffusion-lm/
 ├── backend/
 │   ├── main.py                  # Point d'entrée FastAPI
 │   ├── config.py                # Configuration & variables d'environnement
